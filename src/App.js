@@ -8,6 +8,7 @@ import { useState, useEffect } from "react";
 import { format } from "date-fns";
 import Pagelayout from "./Pagelayout";
 import api from "./api/posts";
+import EditPost from "./EditPost";
 
 function App() {
 	const [posts, setPosts] = useState([]);
@@ -58,11 +59,10 @@ function App() {
 
 		try {
 			const response = await api.put(`/posts/${id}`, updatedPost);
-			setPosts(
-				posts.map((item) =>
-					item.id === id ? { ...response.data } : item
-				)
+			const list = posts.map((item) =>
+				item.id.toString() === id ? { ...response.data } : item
 			);
+			setPosts(list);
 			setEditBody("");
 			setEditTitle("");
 			navigate("/");
@@ -75,7 +75,6 @@ function App() {
 		try {
 			await api.delete(`/posts/${id}`);
 			// eslint-disable-next-line
-
 			const list = posts.filter((item) => item.id != id);
 			setPosts(list);
 			navigate("/");
@@ -119,6 +118,19 @@ function App() {
 							setPostTitle={setPostTitle}
 							setPostBody={setPostBody}
 							handleSubmit={handleSubmit}
+						/>
+					}
+				/>
+				<Route
+					path="edit/:id"
+					element={
+						<EditPost
+							posts={posts}
+							editTitle={editTitle}
+							editBody={editBody}
+							setEditTitle={setEditTitle}
+							setEditBody={setEditBody}
+							handleEdit={handleEdit}
 						/>
 					}
 				/>
