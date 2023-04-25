@@ -7,41 +7,40 @@ import { Routes, Route, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
 import Pagelayout from "./Pagelayout";
+import api from "./api/posts";
 
 function App() {
-	const [posts, setPosts] = useState([
-		{
-			id: 1,
-			title: "My First Post",
-			datetime: "July 01, 2021 11:17:36 AM",
-			body: "Lorem ipsum dolor sit amet consectetur adipisicing elit. Quis consequatur expedita, assumenda similique non optio! Modi nesciunt excepturi corrupti atque blanditiis quo nobis, non optio quae possimus illum exercitationem ipsa!",
-		},
-		{
-			id: 2,
-			title: "My 2nd Post",
-			datetime: "July 01, 2021 11:17:36 AM",
-			body: "Lorem ipsum dolor sit amet consectetur adipisicing elit. Quis consequatur expedita, assumenda similique non optio! Modi nesciunt excepturi corrupti atque blanditiis quo nobis, non optio quae possimus illum exercitationem ipsa!",
-		},
-		{
-			id: 3,
-			title: "My 3rd Post",
-			datetime: "July 01, 2021 11:17:36 AM",
-			body: "Lorem ipsum dolor sit amet consectetur adipisicing elit. Quis consequatur expedita, assumenda similique non optio! Modi nesciunt excepturi corrupti atque blanditiis quo nobis, non optio quae possimus illum exercitationem ipsa!",
-		},
-		{
-			id: 4,
-			title: "My Fourth Post",
-			datetime: "July 01, 2021 11:17:36 AM",
-			body: "Lorem ipsum dolor sit amet consectetur adipisicing elit. Quis consequatur expedita, assumenda similique non optio! Modi nesciunt excepturi corrupti atque blanditiis quo nobis, non optio quae possimus illum exercitationem ipsa!",
-		},
-	]);
+	const [posts, setPosts] = useState([]);
 	const [search, setSearch] = useState("");
 	const [searchResults, setSearchResults] = useState([]);
 
 	const [postTitle, setPostTitle] = useState("");
 	const [postBody, setPostBody] = useState("");
 
+	const [editTitle, setEditTitle] = useState("");
+	const [editBody, setEditBody] = useState("");
+
 	const navigate = useNavigate();
+
+	useEffect(() => {
+		const fetchPosts = async () => {
+			try {
+				const response = await api.get("/posts");
+
+				setPosts(response.data);
+			} catch (error) {
+				if (error.response) {
+					console.log(error.response.data);
+					console.log(error.response.headers);
+					console.log(error.response.status);
+				} else {
+					console.log(`Error: ${error.message}`);
+				}
+			}
+		};
+
+		fetchPosts();
+	}, []);
 
 	useEffect(() => {
 		const filteredResults = posts.filter(
@@ -53,26 +52,55 @@ function App() {
 		setSearchResults(filteredResults.reverse());
 	}, [posts, search]);
 
-	const handleDelete = (id) => {
-		// eslint-disable-next-line
-		const list = posts.filter((item) => item.id != id);
-		setPosts(list);
-		navigate("/");
+	const handleEdit = async (id) => {
+		const datetime = format(new Date(), "MMMM dd, yyyy pp");
+		const updatedPost = { id, datetime, title: editTitle, body: editBody };
+
+		try {
+			const response = await api.put(`/posts/${id}`, updatedPost);
+			setPosts(
+				posts.map((item) =>
+					item.id === id ? { ...response.data } : item
+				)
+			);
+			setEditBody("");
+			setEditTitle("");
+			navigate("/");
+		} catch (err) {
+			console.log(`Error: ${err.message}`);
+		}
 	};
 
-	const handleSubmit = (e) => {
+	const handleDelete = async (id) => {
+		try {
+			await api.delete(`/posts/${id}`);
+			// eslint-disable-next-line
+
+			const list = posts.filter((item) => item.id != id);
+			setPosts(list);
+			navigate("/");
+		} catch (err) {
+			console.log(`Error: ${err.message}`);
+		}
+	};
+
+	const handleSubmit = async (e) => {
 		e.preventDefault();
 
 		const id = posts.length ? posts[posts.length - 1].id + 1 : 1;
 		const datetime = format(new Date(), "MMMM dd, yyyy pp");
 
 		const newPost = { id, datetime, title: postTitle, body: postBody };
-
-		const list = [...posts, newPost];
-		setPosts(list);
-		setPostTitle("");
-		setPostBody("");
-		navigate("/");
+		try {
+			const response = await api.post("/posts", newPost);
+			const list = [...posts, response.data];
+			setPosts(list);
+			setPostTitle("");
+			setPostBody("");
+			navigate("/");
+		} catch (err) {
+			console.log(`Error: ${err.message}`);
+		}
 	};
 
 	return (
