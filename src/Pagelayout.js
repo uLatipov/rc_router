@@ -3,12 +3,12 @@ import Nav from "./Nav";
 import Header from "./Header";
 import Footer from "./Footer";
 
-const Pagelayout = ({ headerW, search, setSearch }) => {
+const Pagelayout = () => {
 	return (
 		<div className="App">
-			<Header width={headerW} title={"React Js Blog"} />
+			<Header title={"React Js Blog"} />
 
-			<Nav search={search} setSearch={setSearch} />
+			<Nav />
 
 			<Outlet />
 
