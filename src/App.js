@@ -3,12 +3,13 @@ import NewPost from "./NewPost";
 import PostPage from "./PostPage";
 import About from "./About";
 import NoMatch from "./NoMatch";
+import EditPost from "./EditPost";
 import { Routes, Route, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
 import Pagelayout from "./Pagelayout";
 import api from "./api/posts";
-import EditPost from "./EditPost";
+import useWindowSize from "./hooks/useWindowSize";
 
 function App() {
 	const [posts, setPosts] = useState([]);
@@ -22,6 +23,8 @@ function App() {
 	const [editBody, setEditBody] = useState("");
 
 	const navigate = useNavigate();
+
+	const { width } = useWindowSize();
 
 	useEffect(() => {
 		const fetchPosts = async () => {
@@ -106,7 +109,13 @@ function App() {
 		<Routes>
 			<Route
 				path="/"
-				element={<Pagelayout search={search} setSearch={setSearch} />}
+				element={
+					<Pagelayout
+						headerW={width}
+						search={search}
+						setSearch={setSearch}
+					/>
+				}
 			>
 				<Route index element={<Home posts={searchResults} />} />
 				<Route
