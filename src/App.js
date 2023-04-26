@@ -10,6 +10,7 @@ import { format } from "date-fns";
 import Pagelayout from "./Pagelayout";
 import api from "./api/posts";
 import useWindowSize from "./hooks/useWindowSize";
+import useAxiosFetch from "./hooks/useAxiosFetch";
 
 function App() {
 	const [posts, setPosts] = useState([]);
@@ -26,25 +27,13 @@ function App() {
 
 	const { width } = useWindowSize();
 
+	const { data, fetchError, isLoading } = useAxiosFetch(
+		"http://localhost:3500/posts"
+	);
+
 	useEffect(() => {
-		const fetchPosts = async () => {
-			try {
-				const response = await api.get("/posts");
-
-				setPosts(response.data);
-			} catch (error) {
-				if (error.response) {
-					console.log(error.response.data);
-					console.log(error.response.headers);
-					console.log(error.response.status);
-				} else {
-					console.log(`Error: ${error.message}`);
-				}
-			}
-		};
-
-		fetchPosts();
-	}, []);
+		setPosts(data);
+	}, [data]);
 
 	useEffect(() => {
 		const filteredResults = posts.filter(
@@ -117,7 +106,16 @@ function App() {
 					/>
 				}
 			>
-				<Route index element={<Home posts={searchResults} />} />
+				<Route
+					index
+					element={
+						<Home
+							fetchError={fetchError}
+							isLoading={isLoading}
+							posts={searchResults}
+						/>
+					}
+				/>
 				<Route
 					path="post"
 					element={
